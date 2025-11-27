@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaClipboardList, FaEdit, FaTrashAlt, FaClock, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
@@ -8,6 +8,8 @@ export default function ReportList() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('TODOS');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchTickets() {
@@ -41,13 +43,9 @@ export default function ReportList() {
         }
 
         const normalized = Array.isArray(data)
-          ? data.map((item) => ({
-              ...item,
-              id: item.id || item._id,
-            }))
+          ? data.map((item) => ({ ...item, id: item.id || item._id }))
           : [];
 
-        // Filtra pelo status escolhido
         const filteredByStatus =
           filter === 'TODOS'
             ? normalized
@@ -106,7 +104,6 @@ export default function ReportList() {
     }
   };
 
-  // Helpers para status
   function getStatusLabel(status) {
     switch (status) {
       case 'PENDENTE':
@@ -223,7 +220,7 @@ export default function ReportList() {
               onClick={(e) => {
                 // Evita que clique nos botões de editar/excluir abra os detalhes
                 if (e.target.closest('a') || e.target.closest('button')) return;
-                window.location.href = `/reports/${ticket.id || ticket._id}`;
+                navigate(`/reports/${ticket.id || ticket._id}`);
               }}
             >
               <div>
@@ -244,8 +241,7 @@ export default function ReportList() {
 
                 {/* Prioridade */}
                 <div
-                  className={`
-                    mt-2 p-1 w-max rounded-lg font-semibold text-xs
+                  className={`mt-2 p-1 w-max rounded-lg font-semibold text-xs
                     ${ticket.prioridade === "BAIXA" ? "bg-green-100 text-green-700 border border-green-300" : ""}
                     ${ticket.prioridade === "REGULAR" ? "bg-yellow-100 text-yellow-600 border border-yellow-300" : ""}
                     ${ticket.prioridade === "IMPORTANTE" ? "bg-orange-100 text-orange-600 border border-orange-300" : ""}
