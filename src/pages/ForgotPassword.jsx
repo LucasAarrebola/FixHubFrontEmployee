@@ -48,7 +48,7 @@ export default function ForgotPassword() {
         </form>
 
         <div className="text-center mt-4">
-          <a href="/login" className="text-sm text-[var(--primary)] underline">
+          <a href="/" className="text-sm text-[var(--primary)] underline">
             Voltar para o login
           </a>
         </div>
