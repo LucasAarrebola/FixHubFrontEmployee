@@ -183,13 +183,13 @@ export default function ReportList() {
       </motion.h1>
 
       {/* Filtro */}
-      <div className="flex gap-2 mb-5">
+      <div className="flex gap-2 mb-5 overflow-x-auto scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-gray-200">
         {['TODOS', 'PENDENTE', 'EM_ANDAMENTO', 'CONCLUIDO', 'REPROVADO'].map(
           (status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}
-              className={`px-3 py-1 rounded-lg border ${
+              className={`flex-shrink-0 px-3 py-1 rounded-lg border ${
                 filter === status
                   ? 'bg-blue-200 border-blue-500 text-blue-800'
                   : 'bg-white border-blue-300 text-blue-800'
@@ -218,7 +218,6 @@ export default function ReportList() {
               transition={{ duration: 0.3 }}
               className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 flex justify-between items-center hover:shadow-md transition cursor-pointer"
               onClick={(e) => {
-                // Evita que clique nos botões de editar/excluir abra os detalhes
                 if (e.target.closest('a') || e.target.closest('button')) return;
                 navigate(`/reports/${ticket.id || ticket._id}`);
               }}
@@ -238,18 +237,6 @@ export default function ReportList() {
                       })
                     : 'Data não informada'}
                 </p>
-
-                {/* Prioridade */}
-                <div
-                  className={`mt-2 p-1 w-max rounded-lg font-semibold text-xs
-                    ${ticket.prioridade === "BAIXA" ? "bg-green-100 text-green-700 border border-green-300" : ""}
-                    ${ticket.prioridade === "REGULAR" ? "bg-yellow-100 text-yellow-600 border border-yellow-300" : ""}
-                    ${ticket.prioridade === "IMPORTANTE" ? "bg-orange-100 text-orange-600 border border-orange-300" : ""}
-                    ${ticket.prioridade === "URGENTE" ? "bg-red-100 text-red-600 border border-red-300" : ""}
-                  `}
-                >
-                  {ticket.prioridade || "—"}
-                </div>
               </div>
 
               <div className="flex items-center gap-3">
