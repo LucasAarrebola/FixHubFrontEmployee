@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FaClipboardList, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
@@ -8,6 +8,8 @@ export default function ReportListClosed() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("TODOS");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchTickets() {
@@ -111,32 +113,17 @@ export default function ReportListClosed() {
 
       {/* FILTRO AZUL */}
       <div className="flex gap-2 mb-5">
-        <button
-          onClick={() => setFilter("TODOS")}
-          className={`px-3 py-1 rounded-lg border ${
-            filter === "TODOS" ? "bg-blue-200 border-blue-500 text-blue-800" : "bg-white border-blue-300 text-blue-800"
-          }`}
-        >
-          Todos
-        </button>
-
-        <button
-          onClick={() => setFilter("CONCLUIDO")}
-          className={`px-3 py-1 rounded-lg border ${
-            filter === "CONCLUIDO" ? "bg-blue-200 border-blue-500 text-blue-800" : "bg-white border-blue-300 text-blue-800"
-          }`}
-        >
-          Concluídos
-        </button>
-
-        <button
-          onClick={() => setFilter("REPROVADO")}
-          className={`px-3 py-1 rounded-lg border ${
-            filter === "REPROVADO" ? "bg-blue-200 border-blue-500 text-blue-800" : "bg-white border-blue-300 text-blue-800"
-          }`}
-        >
-          Reprovados
-        </button>
+        {["TODOS", "CONCLUIDO", "REPROVADO"].map(status => (
+          <button
+            key={status}
+            onClick={() => setFilter(status)}
+            className={`px-3 py-1 rounded-lg border ${
+              filter === status ? "bg-blue-200 border-blue-500 text-blue-800" : "bg-white border-blue-300 text-blue-800"
+            }`}
+          >
+            {status === "CONCLUIDO" ? "Concluídos" : status === "REPROVADO" ? "Reprovados" : "Todos"}
+          </button>
+        ))}
       </div>
 
       {tickets.length === 0 ? (
@@ -149,7 +136,12 @@ export default function ReportListClosed() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 flex justify-between items-center hover:shadow-md transition"
+              className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 flex justify-between items-center hover:shadow-md transition cursor-pointer"
+              onClick={(e) => {
+                // Evita que cliques em links interfiram
+                if (e.target.closest('a')) return;
+                navigate(`/reports/master/${ticket.id || ticket._id}`);
+              }}
             >
               <div>
                 <h2 className="font-semibold text-slate-800">
@@ -174,19 +166,25 @@ export default function ReportListClosed() {
                     ? new Date(ticket.dataCriacaoTicket).toLocaleDateString('pt-BR')
                     : 'Data não informada'}
                 </p>
+
+                {/* Prioridade */}
+                <div
+                  className={`
+                    mt-2 p-1 w-max rounded-lg font-semibold text-xs
+                    ${ticket.prioridade === "BAIXA" ? "bg-green-100 text-green-700 border border-green-300" : ""}
+                    ${ticket.prioridade === "REGULAR" ? "bg-yellow-100 text-yellow-600 border border-yellow-300" : ""}
+                    ${ticket.prioridade === "IMPORTANTE" ? "bg-orange-100 text-orange-600 border border-orange-300" : ""}
+                    ${ticket.prioridade === "URGENTE" ? "bg-red-100 text-red-600 border border-red-300" : ""}
+                  `}
+                >
+                  {ticket.prioridade || "—"}
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <span className={`flex items-center gap-1 font-medium text-sm ${getStatusColor(ticket.status)}`}>
                   {getStatusIcon(ticket.status)} {getStatusLabel(ticket.status)}
                 </span>
-
-                <Link
-                  to={`/reports/master/${ticket.id || ticket._id}`}
-                  className="px-3 py-1.5 text-sm bg-slate-100 text-slate-800 rounded-lg hover:bg-slate-200 transition"
-                >
-                  Ver Detalhes
-                </Link>
               </div>
             </motion.div>
           ))}

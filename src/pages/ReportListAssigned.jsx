@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaClipboardList, FaClock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
@@ -8,6 +8,8 @@ export default function ReportListAssigned() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("TODOS");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchTickets() {
@@ -75,7 +77,7 @@ export default function ReportListAssigned() {
   function getStatusColor(status) {
     switch (status) {
       case "PENDENTE":
-        return "text-slate-500"; // CINZA
+        return "text-slate-500";
       case "EM_ANDAMENTO":
         return "text-yellow-600";
       case "REPROVADO":
@@ -107,34 +109,17 @@ export default function ReportListAssigned() {
 
       {/* FILTRO AZUL */}
       <div className="flex gap-2 mb-5">
-        <button
-          onClick={() => setFilter("TODOS")}
-          className={`px-3 py-1 rounded-lg border ${
-            filter === "TODOS" ? "bg-blue-200 border-blue-500 text-blue-800" : "bg-white border-blue-300 text-blue-800"
-          }`}
-        >
-          Todos
-        </button>
-
-        <button
-          onClick={() => setFilter("PENDENTE")}
-          className={`px-3 py-1 rounded-lg border ${
-            filter === "PENDENTE" ? "bg-blue-200 border-blue-500 text-blue-800" : "bg-white border-blue-300 text-blue-800"
-          }`}
-        >
-          Pendente
-        </button>
-
-        <button
-          onClick={() => setFilter("EM_ANDAMENTO")}
-          className={`px-3 py-1 rounded-lg border ${
-            filter === "EM_ANDAMENTO"
-              ? "bg-blue-200 border-blue-500 text-blue-800"
-              : "bg-white border-blue-300 text-blue-800"
-          }`}
-        >
-          Em andamento
-        </button>
+        {["TODOS", "PENDENTE", "EM_ANDAMENTO"].map(status => (
+          <button
+            key={status}
+            onClick={() => setFilter(status)}
+            className={`px-3 py-1 rounded-lg border ${
+              filter === status ? "bg-blue-200 border-blue-500 text-blue-800" : "bg-white border-blue-300 text-blue-800"
+            }`}
+          >
+            {status === "EM_ANDAMENTO" ? "Em andamento" : status.charAt(0) + status.slice(1).toLowerCase()}
+          </button>
+        ))}
       </div>
 
       {tickets.length === 0 ? (
@@ -147,7 +132,12 @@ export default function ReportListAssigned() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 flex justify-between items-center hover:shadow-md transition"
+              className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 flex justify-between items-center hover:shadow-md transition cursor-pointer"
+              onClick={(e) => {
+                // Evita que cliques em links interfiram
+                if (e.target.closest('a')) return;
+                navigate(`/reports/master/${ticket.id}`);
+              }}
             >
               <div>
                 <h2 className="font-semibold text-slate-800">
@@ -172,6 +162,19 @@ export default function ReportListAssigned() {
                     ? new Date(ticket.dataCriacaoTicket).toLocaleDateString('pt-BR')
                     : 'Data não informada'}
                 </p>
+
+                {/* Prioridade */}
+                <div
+                  className={`
+                    mt-2 p-1 w-max rounded-lg font-semibold text-xs
+                    ${ticket.prioridade === "BAIXA" ? "bg-green-100 text-green-700 border border-green-300" : ""}
+                    ${ticket.prioridade === "REGULAR" ? "bg-yellow-100 text-yellow-600 border border-yellow-300" : ""}
+                    ${ticket.prioridade === "IMPORTANTE" ? "bg-orange-100 text-orange-600 border border-orange-300" : ""}
+                    ${ticket.prioridade === "URGENTE" ? "bg-red-100 text-red-600 border border-red-300" : ""}
+                  `}
+                >
+                  {ticket.prioridade || "—"}
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
@@ -179,13 +182,6 @@ export default function ReportListAssigned() {
                 <span className={`flex items-center gap-1 font-medium text-sm ${getStatusColor(ticket.status)}`}>
                   <FaClock /> {getStatusLabel(ticket.status)}
                 </span>
-
-                <Link
-                  to={`/reports/master/${ticket.id}`}
-                  className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition"
-                >
-                  Ver Detalhes
-                </Link>
               </div>
             </motion.div>
           ))}
