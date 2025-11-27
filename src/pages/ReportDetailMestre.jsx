@@ -174,48 +174,57 @@ export default function ReportDetailOrganizado() {
     }
   };
 
-  // Reprovar
-  const reprovarTicket = async () => {
-    const token = safeToken();
-    if (!token) return;
+// Reprovar
+const reprovarTicket = async () => {
+  const token = safeToken();
+  if (!token) return;
 
-    const { value: motivo } = await Swal.fire({
-      title: "Motivo da reprovação",
-      input: "textarea",
-      inputPlaceholder: "Explique por que o ticket foi reprovado...",
-      showCancelButton: true,
-      inputValidator: (value) => (!value?.trim() ? "O motivo é obrigatório." : null),
-    });
+  // Solicita o motivo da reprovação
+  const { value: descricao } = await Swal.fire({
+    title: "Motivo da reprovação",
+    input: "textarea",
+    inputPlaceholder: "Explique por que o ticket foi reprovado...",
+    showCancelButton: true,
+    inputValidator: (value) => (!value?.trim() ? "O motivo é obrigatório." : null),
+  });
 
-    if (!motivo) return;
+  if (!descricao) return;
 
-    try {
-      setSubmitting(true);
+  try {
+    setSubmitting(true);
 
-      const res = await fetch(
-        `https://projeto-integrador-fixhub.onrender.com/api/fixhub/resolucoes/reprovar?idTicketMestre=${id}`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+    // Faz a requisição para reprovar
+    const res = await fetch(
+      "https://projeto-integrador-fixhub.onrender.com/api/fixhub/resolucoes/reprovar",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ idTicket: id, descricao }), // Envia id e descrição no body
+      }
+    );
 
-      if (!res.ok) throw new Error();
+    if (!res.ok) throw new Error();
 
-      Swal.fire("Reprovado!", "O ticket foi marcado como reprovado.", "success");
+    Swal.fire("Reprovado!", "O ticket foi marcado como reprovado.", "success");
 
-      setTicket((prev) => ({
-        ...prev,
-        status: "REPROVADO",
-        motivoReprovacao: motivo,
-      }));
-    } catch (error) {
-      console.error(error);
-      Swal.fire("Erro", "Não foi possível reprovar o ticket.", "error");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    // Atualiza o estado do ticket
+    setTicket((prev) => ({
+      ...prev,
+      status: "REPROVADO",
+      descricaoResolucao: descricao,
+      nomeFuncionario: funcionarioNome || "Funcionário",
+      dataResolucao: new Date().toISOString(),
+    }));
+  } catch (error) {
+    console.error(error);
+    Swal.fire("Erro", "Não foi possível reprovar o ticket.", "error");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   // Finalizar
   const finalizarTicket = async () => {
